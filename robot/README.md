@@ -13,28 +13,18 @@ Setiap perubahan dari versi Coppelia ditandai komentar `#[ROBOT]`.
 | `pose_control.py` | Menuju titik target, log CSV |
 | `pose_control_avoidance.py` | Pose control + Braitenberg, log CSV |
 
-## Menjalankan (di PC Linux)
+## Menjalankan
 
-Ikuti dulu bagian 1–2 README kit (`./setup.sh`, cek `ros2 topic list`). Lalu
-clone repo ini **di dalam folder kit**, supaya ikut ter-mount di `/workspace`:
+Panduan step by step dari Linux baru sampai robot jalan ada di
+[README utama](../README.md#panduan-linux-step-by-step). Singkatnya:
 
 ```bash
-cd ~/jetracer-kit-mahasiswa                 # folder kit
-git clone https://github.com/Mervs111/SKC-Project.git
+cd ~/jetracer-kit-mahasiswa                 # folder kit, repo ini di-clone di dalamnya
 export ROBOT_IP=10.17.36.90                 # IP dari layar OLED robot
-
 ./ros.sh python3 /workspace/SKC-Project/robot/KeyboardControl.py
-./ros.sh python3 /workspace/SKC-Project/robot/ObjectAvoidance_Braitenberg.py
-./ros.sh python3 /workspace/SKC-Project/robot/ObjectFollower_Forward+Reverse.py
-./ros.sh python3 /workspace/SKC-Project/robot/pose_control.py 1.5 0.5 0       # x [m], y [m], gamma [derajat]
-./ros.sh python3 /workspace/SKC-Project/robot/pose_control_avoidance.py 2.0 0 0
 ```
 
-Update kode: `cd ~/jetracer-kit-mahasiswa/SKC-Project && git pull`.
-
-`q` = keluar. Ctrl-C juga aman: robot berhenti dan log tetap tersimpan.
 Log pose control (`log_*.csv`) tersimpan di folder ini.
-
 **Percobaan pertama: angkat roda dulu dari lantai.**
 
 ## Yang berubah dibanding Coppelia
