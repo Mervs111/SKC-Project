@@ -10,6 +10,10 @@ Program kendali robot Pioneer P3-DX untuk dua target:
 Repo ini juga dipakai sebagai jalur transfer Windows ⇄ Linux: edit & `git push`
 di satu PC, lalu `git pull` di PC lain.
 
+**Isi README:**
+- [Panduan Linux: step by step](#panduan-linux-step-by-step), dari Linux baru sampai robot jalan
+- [Panduan Claude Code di Linux](#panduan-claude-code-di-linux), memasang Claude Code di terminal
+
 ---
 
 # Panduan Linux: step by step
@@ -151,8 +155,10 @@ git commit -m "Log percobaan robot"
 git push
 ```
 
-Saat `git push` diminta **password**, isi dengan **Personal Access Token**
-GitHub, bukan password akun. Buat token di GitHub → Settings → Developer
+Cara paling mudah supaya `git push` bisa jalan: login sekali dengan GitHub
+CLI (lihat langkah C3 di [Panduan Claude Code](#panduan-claude-code-di-linux)).
+Kalau tidak pakai GitHub CLI: saat `git push` diminta **password**, isi dengan
+**Personal Access Token** GitHub, bukan password akun. Buat token di GitHub → Settings → Developer
 settings → Personal access tokens → *Fine-grained* (izin **Contents: Read and
 write** untuk repo ini). Simpan tokennya supaya tidak perlu diketik ulang:
 `git config --global credential.helper store`.
@@ -176,3 +182,127 @@ Lalu di Windows: `git pull`.
 
 Detail perubahan program dari versi CoppeliaSim: [`robot/README.md`](robot/README.md).
 Panduan lengkap kit (RViz, SLAM, peta, Nav2): `~/jetracer-kit-mahasiswa/README.md`.
+
+---
+
+# Panduan Claude Code di Linux
+
+Claude Code = asisten AI di terminal yang bisa membaca, mengedit, dan
+menjalankan kode di folder proyek. Sumber: dokumentasi resmi
+[code.claude.com/docs/en/setup](https://code.claude.com/docs/en/setup).
+
+## C0. Syarat
+
+- **Akun Claude berbayar** (Pro, Max, Team, atau Enterprise), atau akun
+  Claude Console (API). **Paket gratis claude.ai tidak termasuk Claude Code.**
+- Ubuntu 20.04 atau lebih baru (atau Debian 10+), RAM minimal 4 GB, internet.
+- Tidak perlu Node.js.
+
+## C1. Pasang Claude Code
+
+```bash
+sudo apt update
+sudo apt install -y curl git
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+- Jangan pakai `sudo` untuk baris `curl ... | bash`.
+- Installer tidak menampilkan progres saat mengunduh. Tunggu sampai selesai.
+- Setelah selesai, **tutup terminal lalu buka terminal baru**.
+
+## C2. Cek pemasangan
+
+```bash
+claude --version        # contoh keluaran: 2.1.xxx (Claude Code)
+claude doctor           # diagnosis pemasangan
+```
+
+Kalau muncul `claude: command not found`, folder `~/.local/bin` belum masuk PATH:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+claude --version
+```
+
+## C3. Login GitHub (opsional, supaya `git push` lancar)
+
+Supaya kamu dan Claude bisa `git push` dari Linux tanpa mengetik token:
+
+```bash
+sudo apt install -y gh
+gh auth login
+```
+
+Pilih **GitHub.com** → **HTTPS** → **Yes** (authenticate Git) → **Login with
+a web browser**. Lalu salin kode yang muncul ke browser.
+
+## C4. Jalankan & login pertama kali
+
+Jalankan Claude dari folder repo ini:
+
+```bash
+cd ~/jetracer-kit-mahasiswa/SKC-Project
+claude --add-dir ~/jetracer-kit-mahasiswa      # --add-dir: Claude ikut bisa membaca isi kit (lib/p3dx.py, README kit)
+```
+
+Saat pertama kali:
+
+1. Browser terbuka untuk login. Masuk dengan akun Claude kamu.
+2. Kalau browser tidak terbuka, tekan **`c`** di terminal untuk menyalin link
+   login, lalu tempel di browser.
+3. Kalau browser menampilkan **kode**, tempel kode itu di terminal pada tulisan
+   `Paste code here if prompted`.
+4. Muncul `Login successful`. Tekan **Enter**.
+
+Login cukup sekali. Berikutnya cukup `cd` ke folder repo, lalu jalankan `claude`.
+
+## C5. Cara pakai
+
+- Ketik permintaan biasa dalam bahasa Indonesia. Contoh:
+  - *"baca README.md dan robot/README.md dulu, lalu cek koneksi ke robot"*
+  - *"naikkan V_MIN di pose_control.py jadi 0.12 lalu push ke github"*
+- Claude di Linux **tidak tahu percakapan di Windows**. Di awal sesi, minta
+  dia membaca `README.md` dan `robot/README.md` dulu.
+- Perintah penting:
+
+| Perintah | Fungsi |
+|---|---|
+| `claude` | mulai sesi baru |
+| `claude -c` | lanjutkan percakapan terakhir di folder ini |
+| `/help` | daftar perintah |
+| `/login`, `/logout` | ganti / keluar akun |
+| `/exit` | keluar dari Claude |
+
+**Penting untuk robot:**
+
+- Claude boleh menjalankan perintah yang **tidak menggerakkan robot**, misalnya
+  `./ros.sh ros2 topic list`, edit kode, `git pull` / `git push`.
+- Program yang **menggerakkan robot jalankan sendiri** di terminal terpisah
+  (langkah 5), supaya kamu bisa menekan `q` / Ctrl-C kapan saja.
+- Program yang memakai tombol (`KeyboardControl.py`, object follower) juga
+  tidak bisa dikendalikan dari dalam Claude, karena terminal Claude tidak
+  meneruskan tombol keyboard.
+- Saat Claude meminta izin menjalankan perintah, baca dulu perintahnya sebelum
+  menyetujui.
+
+## C6. Update & hapus
+
+- Claude Code **update otomatis**. Update manual: `claude update`.
+- Hapus:
+
+```bash
+rm -f ~/.local/bin/claude
+rm -rf ~/.local/share/claude
+rm -rf ~/.claude ~/.claude.json      # ikut menghapus setelan, login, dan riwayat percakapan
+```
+
+## C7. Kalau ada masalah
+
+| Gejala | Solusi |
+|---|---|
+| `claude: command not found` | Langkah C2 (tambahkan `~/.local/bin` ke PATH), lalu buka terminal baru |
+| Error SSL / sertifikat saat instal | `sudo apt-get update && sudo apt-get install ca-certificates`, lalu ulangi C1 |
+| Instal berhenti dengan tulisan `Killed` | RAM kurang. Tutup aplikasi lain lalu ulangi |
+| Login berhasil tapi ditolak / tidak ada akses | Akun gratis tidak termasuk Claude Code. Pakai akun Pro/Max/Team/Enterprise |
+| Masih bingung | `claude doctor`, atau panduan resmi [code.claude.com/docs/en/troubleshoot-install](https://code.claude.com/docs/en/troubleshoot-install) |
